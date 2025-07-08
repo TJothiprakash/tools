@@ -42,10 +42,11 @@ public class PasswordResetController {
         if (optionalUser.isEmpty()) {
             return ResponseEntity.badRequest().body("User with email not found");
         }
-
+        System.out.println("user found " + optionalUser.get().toString());
         User user = optionalUser.get();
         String resetToken = UUID.randomUUID().toString();
-
+        System.out.println("resetToken = " + resetToken);
+        System.out.println(" saving the token in redis ... ");
         // ✅ Save token in Redis
         resetPasswordService.storeResetToken(resetToken, user.getEmail());
 
