@@ -1,5 +1,6 @@
 package org.jp.tools.urlshortener.service;
 
+import org.jp.tools.config.AppProperties;
 import org.jp.tools.redis.service.RedisService;
 import org.jp.tools.urlshortener.dto.ShortenUrlRequest;
 import org.jp.tools.urlshortener.dto.ShortenUrlResponse;
@@ -17,7 +18,9 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class UrlShortenerService {
 
-    private static final String BASE_URL = "http://localhost:8080/";
+    @Autowired
+    private AppProperties appProperties;
+
     private static final long CACHE_TTL_MINUTES = 15;
 
     @Autowired
@@ -25,7 +28,6 @@ public class UrlShortenerService {
 
     @Autowired
     private RedisService redisService;
-
     public ShortenUrlResponse shortenUrl(ShortenUrlRequest request) {
         String longUrl = request.getLongUrl();
 
@@ -37,7 +39,7 @@ public class UrlShortenerService {
         Optional<UrlMapping> existing = repository.findByLongUrl(longUrl);
         if (existing.isPresent()) {
             String shortCode = existing.get().getShortUrl();
-            return new ShortenUrlResponse(BASE_URL + shortCode);
+            return new ShortenUrlResponse(appProperties.getBaseUrl() + "/" + shortCode);
         }
 
         // Generate short code using UUID
@@ -50,7 +52,7 @@ public class UrlShortenerService {
         // Save to Redis
         redisService.set(shortCode, longUrl, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
 
-        return new ShortenUrlResponse(BASE_URL + shortCode);
+        return new ShortenUrlResponse(appProperties.getBaseUrl() + "/" + shortCode);
     }
 
     public String getLongUrl(String shortCode) {
